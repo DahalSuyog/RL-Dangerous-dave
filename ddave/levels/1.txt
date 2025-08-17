@@ -1,0 +1,11 @@
+                                                                                                                                                                                                                                                                                                           
+B2 B2 B2 B2 B2 B2 B2 B2 B2 B2 B2 B2 B2 B2 B2 B2 B2 B2 B2
+B2 I0                                              I2 B2
+B2       I1          I1          TR          I1       B2
+B2       B2          B2          B2          B2       B2
+B2 I1          I1          I1          I1          I1 B2
+B2 B2          B2          B2          B2          B2 B2
+B2 I1                                                 B2
+B2          B2 B2 B2 B2          B2 B2 B2 B2 B2 B2    B2
+B2 T1 p0                         B2 DO                B2
+B2 B2 B2 B2 B2 B2 B2 B2 B2 B2 B2 B2 B2 B2 B2 B2 B2 B2 B2
