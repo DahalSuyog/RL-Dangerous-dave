@@ -1,0 +1,6 @@
+pygame
+numpy
+gymnasium
+stable-baselines3
+torch
+scikit-learn
