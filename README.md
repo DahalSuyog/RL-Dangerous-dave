@@ -82,6 +82,26 @@ Evaluate a trained model:
 python agent.py --evaluate --model-type rnd --model-load-path checkpoint/<model_name>/<update>
 ```
 
+Watch [Jev](https://typesafe.ai) (TypeSafe AI) play:
+
+```bash
+python play_jev.py
+```
+
+### Jev (TypeSafe AI)
+
+`play_jev.py` uses [Jev](https://typesafe.ai) to pick Dave's moves in real time, via `jev_agent.py`'s
+`JevAgent`. Jev is a text/JSON-in, typed-judgment-out model rather than a vision model, so each decision
+`JevAgent` builds a compact description of the tiles near Dave (hazards, solid ground, gaps) and asks Jev
+to choose one of the 7 discrete actions from that description.
+
+Requires a `TYPESAFE_API_KEY` (get one at [console.typesafe.ai](https://console.typesafe.ai/)). Copy
+`.env.example` to `.env` and fill in your key:
+
+```bash
+cp .env.example .env
+```
+
 ### `agent.py` arguments
 
 | Flag | Description |
