@@ -197,6 +197,7 @@ class LayaAgent:
                 "action_name": ACTION_NAMES[self._previous_action],
                 "confidence": None,
                 "error": str(error),
+                "probabilities": None,
             }
             return self._previous_action
 
@@ -218,6 +219,7 @@ class LayaAgent:
             "confidence": confidence,
             "error": None,
             "low_confidence": low_confidence,
+            "probabilities": answer["probabilities"],
         }
         print(f"Laya action: {ACTION_NAMES[action]} (confidence={confidence:.2f})")
         self._previous_action = action

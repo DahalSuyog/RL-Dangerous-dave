@@ -37,37 +37,66 @@ HUD_COLOR_NORMAL = (255, 255, 255)
 HUD_COLOR_UNCERTAIN = (255, 210, 60)
 HUD_COLOR_ERROR = (255, 90, 90)
 HUD_BORDER_COLOR = (255, 255, 255)
+HUD_HIGHLIGHT_COLOR = (50, 140, 80)  # background behind the row for the action actually taken
 HUD_FONT_SIZE = 32
+HUD_OPTION_FONT_SIZE = 22
 HUD_MARGIN = 10
 HUD_PADDING = (20, 14)
+HUD_ROW_GAP = 3
 # Sits just below the game's own top overlay bar (score/level/lives), in the plain gameplay
 # area, so it doesn't cover any existing UI.
 HUD_Y = TOP_OVERLAY_POS * TILE_SCALE_FACTOR + HUD_MARGIN
 
 
-def draw_laya_hud(font, decision):
-    """Draws a bold, high-contrast label showing Laya's latest chosen action, so it's readable
-    directly on the game window (and in a recording) instead of only in the console."""
+def draw_laya_hud(header_font, option_font, decision):
+    """Draws a badge showing Laya's chosen action plus its confidence across *all* 7 options
+    each decision (not just the one taken), with the taken option's row highlighted, so the
+    full distribution behind the pick is visible directly on the game window."""
+    rows = []  # (option_name, probability) pairs for every action, in ACTION_NAMES order
     if decision is None:
-        text, color = "LAYA: THINKING...", HUD_COLOR_NORMAL
+        header_text, header_color = "LAYA: THINKING...", HUD_COLOR_NORMAL
     elif decision["error"]:
-        text, color = f"LAYA: {decision['action_name'].upper()} - INFERENCE ERROR, REUSING LAST MOVE", HUD_COLOR_ERROR
-    elif decision["low_confidence"]:
-        text = f"LAYA: {decision['action_name'].upper()}  ({decision['confidence'] * 100:.0f}% CONFIDENCE, UNSURE)"
-        color = HUD_COLOR_UNCERTAIN
+        header_text = f"LAYA: {decision['action_name'].upper()} - INFERENCE ERROR, REUSING LAST MOVE"
+        header_color = HUD_COLOR_ERROR
     else:
-        text = f"LAYA: {decision['action_name'].upper()}  ({decision['confidence'] * 100:.0f}% CONFIDENCE)"
-        color = HUD_COLOR_NORMAL
+        suffix = "  UNSURE" if decision["low_confidence"] else ""
+        header_text = f"LAYA: {decision['action_name'].upper()}  ({decision['confidence'] * 100:.0f}% CONFIDENCE{suffix})"
+        header_color = HUD_COLOR_UNCERTAIN if decision["low_confidence"] else HUD_COLOR_NORMAL
+        rows = list(decision["probabilities"].items())
 
-    text_surface = font.render(text, True, color)
-    badge_rect = text_surface.get_rect(topleft=(HUD_MARGIN, HUD_Y)).inflate(*HUD_PADDING)
+    header_surface = header_font.render(header_text, True, header_color)
+    row_data = [
+        (option_font.render(f"{'> ' if name == decision['action_name'] else '  '}{name.upper():<8}{prob * 100:5.1f}%",
+                             True, HUD_COLOR_NORMAL),
+         name == decision["action_name"])
+        for name, prob in rows
+    ]
+
+    content_width = max([header_surface.get_width()] + [surface.get_width() for surface, _ in row_data])
+    content_height = header_surface.get_height()
+    if row_data:
+        content_height += HUD_ROW_GAP + sum(s.get_height() for s, _ in row_data) + HUD_ROW_GAP * (len(row_data) - 1)
+
+    badge_rect = pygame.Rect(HUD_MARGIN, HUD_Y, content_width, content_height).inflate(*HUD_PADDING)
 
     surface = pygame.display.get_surface()
     badge = pygame.Surface(badge_rect.size, pygame.SRCALPHA)
     badge.fill((0, 0, 0, 235))
     surface.blit(badge, badge_rect.topleft)
     pygame.draw.rect(surface, HUD_BORDER_COLOR, badge_rect, width=2, border_radius=6)
-    surface.blit(text_surface, (badge_rect.left + HUD_PADDING[0] // 2, badge_rect.top + HUD_PADDING[1] // 2))
+
+    x = badge_rect.left + HUD_PADDING[0] // 2
+    y = badge_rect.top + HUD_PADDING[1] // 2
+    surface.blit(header_surface, (x, y))
+    y += header_surface.get_height() + HUD_ROW_GAP
+
+    for row_surface, chosen in row_data:
+        if chosen:
+            highlight_rect = pygame.Rect(x - 3, y - 1, content_width + 6, row_surface.get_height() + 2)
+            pygame.draw.rect(surface, HUD_HIGHLIGHT_COLOR, highlight_rect, border_radius=4)
+        surface.blit(row_surface, (x, y))
+        y += row_surface.get_height() + HUD_ROW_GAP
+
     # Full update (not just badge_rect) to avoid any partial-rect edge cases under the
     # SCALED fullscreen mode this script runs in.
     pygame.display.update()
@@ -77,6 +106,7 @@ def main():
     env = DangerousDaveEnv(render_mode="human", env_rep_type="grid")
     agent = LayaAgent()
     hud_font = pygame.font.SysFont(None, HUD_FONT_SIZE, bold=True)
+    hud_option_font = pygame.font.SysFont("monospace", HUD_OPTION_FONT_SIZE)
 
     obs, _ = env.reset()
     episode_reward = 0
@@ -96,7 +126,7 @@ def main():
         obs, reward, done, truncated, info = env.step(action)
         episode_reward += reward
         env.render()
-        draw_laya_hud(hud_font, agent.last_decision)
+        draw_laya_hud(hud_font, hud_option_font, agent.last_decision)
         step_count += 1
 
         if done or truncated:

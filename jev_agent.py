@@ -186,6 +186,7 @@ class JevAgent:
                 "action_name": ACTION_NAMES[self._previous_action],
                 "confidence": None,
                 "error": str(error),
+                "probabilities": None,
             }
             return self._previous_action
 
@@ -208,6 +209,7 @@ class JevAgent:
             "confidence": answer.confidence,
             "error": None,
             "low_confidence": low_confidence,
+            "probabilities": answer.probabilities,
         }
         print(f"Jev action: {ACTION_NAMES[action]} (confidence={answer.confidence:.2f})")
         self._previous_action = action
