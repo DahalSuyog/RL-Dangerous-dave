@@ -88,6 +88,12 @@ Watch [Jev](https://typesafe.ai) (TypeSafe AI) play:
 python play_jev.py
 ```
 
+Watch [Laya](https://huggingface.co/convaiinnovations/laya) (Convai Innovations) play:
+
+```bash
+python play_laya.py
+```
+
 ### Jev (TypeSafe AI)
 
 `play_jev.py` uses [Jev](https://typesafe.ai) to pick Dave's moves in real time, via `jev_agent.py`'s
@@ -101,6 +107,17 @@ Requires a `TYPESAFE_API_KEY` (get one at [console.typesafe.ai](https://console.
 ```bash
 cp .env.example .env
 ```
+
+### Laya (Convai Innovations)
+
+`play_laya.py` uses [Laya](https://huggingface.co/convaiinnovations/laya) to pick Dave's moves in real
+time, via `laya_agent.py`'s `LayaAgent`. Like Jev, Laya is a text/JSON-in, typed-judgment-out model rather
+than a vision model, so each decision `LayaAgent` builds the same compact description of the tiles near
+Dave and asks Laya to choose one of the 7 discrete actions from that description.
+
+Unlike Jev, Laya is a local, open-weights model (English checkpoint, ModernBERT-large, 421M parameters) —
+no API key is needed. The first run downloads the weights from Hugging Face Hub (one-time, cached
+afterward) and inference runs locally on CPU or GPU via the already-installed `torch`.
 
 ### `agent.py` arguments
 
